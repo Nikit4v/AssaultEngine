@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using AssaultEngine.Commands;
+
 
 namespace AssaultEngine
 {
@@ -28,12 +30,48 @@ namespace AssaultEngine
                 case "check":
                     command = new CheckCommand(args[1]);
                     break;
+                case "shell":
+                    command = new ShellCommand(args[1]);
+                    break;
                 default:
                     Console.WriteLine("Unknown command");
                     return;
             }
 
-            command.Run();
+            TemporaryFilesManager temporaryFilesManager;
+
+            try
+            {
+                temporaryFilesManager = new TemporaryFilesManager();
+
+                command.Run(temporaryFilesManager);
+                temporaryFilesManager.Free();
+            }
+            catch (TemporaryExistsException)
+            {
+                var run = true;
+                Console.WriteLine("Continue?");
+                while (run)
+                {
+                    var key = Console.ReadKey().KeyChar;
+                    Console.Write("\n");
+                    switch (key)
+                    {
+                        case 'y':
+                            temporaryFilesManager = new TemporaryFilesManager(true);
+                            command.Run(temporaryFilesManager);
+                            temporaryFilesManager.Free();
+                            run = false;
+                            break;
+                        case 'n':
+                            run = false;
+                            return;
+                        default:
+                            Console.WriteLine("Incorrect symbol. Try again");
+                            break;
+                    }
+                }
+            }
         }
     }
 }

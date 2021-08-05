@@ -8,7 +8,7 @@ namespace AssaultEngine
         {
         }
 
-        public override void Run()
+        internal override void Run(TemporaryFilesManager manager)
         {
             Console.WriteLine("Checking {0}", this.Target);
         }

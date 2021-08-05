@@ -11,6 +11,6 @@ namespace AssaultEngine
             Target = target;
         }
 
-        public abstract void Run();
+        internal abstract void Run(TemporaryFilesManager manager);
     }
 }
