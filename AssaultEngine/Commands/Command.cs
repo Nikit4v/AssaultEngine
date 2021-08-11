@@ -1,6 +1,4 @@
-using System;
-
-namespace AssaultEngine
+namespace AssaultEngine.Commands
 {
     public abstract class Command
     {

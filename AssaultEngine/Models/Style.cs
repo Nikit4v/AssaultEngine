@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace AssaultEngine.Models
 {
@@ -9,8 +11,9 @@ namespace AssaultEngine.Models
     {
         Perspective,
         Isometric,
-        Ignore3D
+        Plane
     }
+    
 
     public enum BorderTypes
     {
@@ -34,7 +37,6 @@ namespace AssaultEngine.Models
         Right
     }
     
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     public class Style
     {
         // Style service information. But it used only in editors and error messages ;)
@@ -42,28 +44,17 @@ namespace AssaultEngine.Models
         public string StyleName { get; set; }
         
         // Text modification
-        public Font DefaultFont { get; set; }
-        public bool IsItalic { get; set; }
-        public bool IsBold { get; set; }
-        public bool IsUnderlined { get; set; }
-        public bool IsStrikeout { get; set; }
-        public BorderTypes BorderType { get; set; }
-        public float BorderSize { get; set; }
-        public float ShadowSize { get; set; }
+        public Font Font { get; set; }
+
         [NotMapped]
-        public Vector2 ShadowOffset
-        {
-            get => Serializers.StrToVec2(ShadowOffsetStringProvider);
-            set => ShadowOffsetStringProvider = Serializers.Vec2ToStr(value);
+        public Vector3 Rotate {
+            get => Serializers.StrToVec3(RotateStringProvider);
+            set => RotateStringProvider = Serializers.Vec3ToStr(value);
         }
 
-        public string ShadowOffsetStringProvider { get; set; }
-
-        // Linear transformations, this works only for "image plane"
-        public float Rotate { get; set; }
+        public string RotateStringProvider { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }
         public HorizontalAlignment HorizontalAlignment { get; set; }
-        // TODO: Add another linear transformations
         
         // Colors
         [NotMapped]
@@ -90,9 +81,7 @@ namespace AssaultEngine.Models
         // 3D Options
         public RenderTypes RenderType { get; set; }
         public List<Shader> Shaders { get; set; }
-        public Shader DefaultShader { get; set; }
-        public List<Material> Materials { get; set; }
-        public Material DefaultMaterial { get; set; }
+        public Material Material { get; set; }
         
         // Animations
         public List<Animation> Animations { get; set; }

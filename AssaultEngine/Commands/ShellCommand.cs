@@ -6,10 +6,6 @@ using System.Linq;
 
 namespace AssaultEngine.Commands
 {
-    class CreateOptions
-    {
-        
-    }
     public class ShellCommand : Command
     {
         public ShellCommand(string target) : base(target)
@@ -18,16 +14,16 @@ namespace AssaultEngine.Commands
 
         private void Display(string[] args, SubtitleContext db)
         {
-            switch (args[1])
+            IQueryable<string[]> objects = args[1] switch
             {
-                case "styles":
-                    var styles = from style in db.Styles
-                                                select new[] { style.StyleName, style.DefaultFont.FontFamily };
-                    foreach (var s in styles)
-                    {
-                        Console.WriteLine(s[0] + "    " + s[1]);
-                    }
-                    break;
+                "styles" => from style in db.Styles select new[] {style.StyleName, style.Font.FontFamily},
+                "rows" => from row in db.Rows select new[] {row.Actor},
+                _ => throw new ArgumentException("Unknown type")
+            };
+
+            foreach (var s in objects)
+            {
+                Console.WriteLine(s[0] + "    " + s[1]);
             }
         }
 
@@ -37,24 +33,43 @@ namespace AssaultEngine.Commands
             {
                 case "style":
                     var style = new Style();
+                    Console.Write("Name: ");
+                    style.StyleName = Console.ReadLine()?.Trim(); 
+                    Console.Write("Font: ");
+                    var searchingFont = Console.ReadLine()?.Trim();
+                    try
+                    {
+
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        Console.WriteLine("Undefined font. Create new one?");
+                        switch ((char)Console.ReadKey().Key)
+                        {
+                            case 'y':
+                                break;
+                            case 'n':
+                                break;
+                        }
+                        throw;
+                    }
+                    style.Font = db.Fonts.First(font => font.FontName == searchingFont);
                     break;
             }
         }
         internal override void Run(TemporaryFilesManager manager)
         {
             var projectTemp = manager.CreateProjectDirectory(Path.GetFileNameWithoutExtension(Target));
-            var oldForegroundColor = Console.ForegroundColor;
-            var oldBackgroundColor = Console.BackgroundColor;
             ZipFile.ExtractToDirectory(Target ?? throw new InvalidOperationException(), projectTemp);
             
             Console.CancelKeyPress += delegate
             {
-                Console.ForegroundColor = oldForegroundColor;
-                Console.BackgroundColor = oldBackgroundColor;
+                Console.ResetColor();
             };
             Console.BackgroundColor = ConsoleColor.Black;
             var run = true;
-            using (var db = new SubtitleContext(projectTemp + "/data.db")) while (run)
+            using var db = new SubtitleContext(projectTemp + "/data.db");
+            while (run)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write("| Assault subtitle ");
@@ -67,7 +82,7 @@ namespace AssaultEngine.Commands
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(" |=> ");
                 Console.ForegroundColor = ConsoleColor.Gray;
-                var command = Console.ReadLine() ?? "".Trim();
+                var command = (Console.ReadLine() ?? "").Trim();
                 switch (command.Split(' ')[0])
                 {
                     case "exit":
@@ -75,6 +90,9 @@ namespace AssaultEngine.Commands
                         break;
                     case "display":
                         Display(command.Split(' '), db);
+                        break;
+                    case "create":
+                        Create(command.Split(' '), db);
                         break;
                 }
             }
